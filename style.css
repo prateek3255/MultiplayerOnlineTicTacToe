@@ -1,0 +1,89 @@
+@font-face {
+    font-family: TicTacToe;
+    src: url(RoofRunnersbold-it.ttf);
+}
+
+#child {
+    
+    height :400px;
+    width: 400px;
+    background:blue;
+    margin-top:5%;
+    margin-left: 35%;
+    position: relative;
+}
+
+.head{
+    text-align: center;
+    font-family: TicTacToe;
+    font-size: 50px;
+    color: black;
+}
+
+.head-tic{
+    text-align: center;
+    font-family: TicTacToe;
+    font-size: 50px;
+    color: white;
+
+}
+.button{
+    color:black;
+    font-size: 45px;
+    width:70px;
+    height: 70px;
+    background: blue;
+}
+.gray{
+    background: black;
+}
+
+.reset{
+    font-size:30px;
+    margin-left:45%;
+    background: blue;
+    color:black;
+    font-weight: bold;
+    position: relative;
+    
+}
+
+.login-head{
+    color:white;
+     text-align: center;
+    font-size:25px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+.center{
+    text-align: center;
+}
+
+.white{
+    color:white;
+}
+
+.image{
+    height: 100px;
+    width: 100px;
+}
+
+.leader-head{
+    text-align: center;
+    font-family: TicTacToe;
+    font-size: 50px;
+    color: white;
+     -moz-animation-duration: 2s;
+     -moz-animation-delay: 2s;
+    /*animation-iteration-count: infinite;*/
+}
+
+.leader-image{
+    height: 50px;
+    width: 50px;
+}
+
+.leader-image2{
+    height: 35px;
+    width: 35px;
+}
