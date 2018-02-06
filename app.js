@@ -5,7 +5,7 @@ angular.module("tictactoe", ['ngRoute', 'firebase'])
             .when("/", { templateUrl: "views/login.html" })
             .when("/game/:gameId", { templateUrl: "views/game.html" })
             .when("/leaderboard", { templateUrl: "views/leaderboard.html" })
-        // .otherwise({redirectto})
+            .otherwise({redirectTo:'/'});
     })
     .controller("tic", tic)
     .controller("loginCtrl", loginCtrl)
@@ -46,6 +46,38 @@ function loginCtrl($firebaseAuth, $location, $firebaseObject, $scope) {
                 console.error("Authentication failed:", error);
             });
     }
+    login.loginWithFacebook = function () {
+        var promise = auth.$signInWithPopup("facebook")
+
+        promise.then(function (result) {
+            console.log("Signed in as:", result);
+            var leaderRef = firebase.database().ref("leaderboard/" + result.user.uid);
+            var leaderboard = $firebaseObject(leaderRef);
+            // var leaderboard=$firebaseArray(leaderRef);
+            var present = false;
+            leaderboard.$loaded().then(function () {
+                leaderboard.displayName = result.user.displayName;
+                leaderboard.photoURL = result.user.photoURL;
+                if (!('score' in leaderboard))
+                    leaderboard.score = 0;
+                leaderboard.challenge = "";
+                leaderboard.accept = "";
+                leaderboard.gameId = 0;
+                // leaderboard.$add(player);
+                leaderboard.$save().then(function () {
+                    $location.path("/leaderboard");
+                    console.log("working just fine");
+                });
+
+            });
+
+            // $location.path("/leaderboard");
+        })
+            .catch(function (error) {
+                console.error("Authentication failed:", error);
+            });
+    }
+
 
 
 }
@@ -68,8 +100,9 @@ function leaderCtrl($firebaseAuth, $location, $firebaseArray, $firebaseObject, $
             }
             var leaderRef = firebase.database().ref("leaderboard/" + leader.user.uid);
             var onlineRef = firebase.database().ref("online");
+            leader.onlineUsers = $firebaseArray(onlineRef);
             leader.player = $firebaseObject(leaderRef);
-            leader.player.$loaded().then(function () {
+            leader.onlineUsers.$loaded().then(function(){
                 var connectedRef = firebase.database().ref(".info/connected");
                 connectedRef.on("value", function (snap) {
                     if (snap.val() === true) {
@@ -79,16 +112,28 @@ function leaderCtrl($firebaseAuth, $location, $firebaseArray, $firebaseObject, $
                         person.uid = leader.user.uid;
                         person.photoURL = leader.user.photoURL;
                         person.displayName = leader.user.displayName;
-
-                        var con = onlineRef.push(person);
-
-                        con.onDisconnect().remove();
+                        flag=true
+                        for(i=0;i<leader.onlineUsers.length;i++){
+                            if(person.uid==leader.onlineUsers[i].uid){
+                                flag=false;
+                                console.log("lools like it will work");
+                            }
+                                
+                        }
+                        if(flag){
+                            var con = onlineRef.push(person);
+                            con.onDisconnect().remove();
+                        }
+                            
 
                     } else {
 
                     }
 
                 });
+            })
+            leader.player.$loaded().then(function () {
+                
                 $scope.$watch(function (scope) { return leader.player.challenge },
                     function (newValue, oldValue) {
                         if (newValue != "") {
@@ -117,9 +162,6 @@ function leaderCtrl($firebaseAuth, $location, $firebaseArray, $firebaseObject, $
     });
 
 
-    var onlineUsersRef = firebase.database().ref("online");
-    onlineUsers = $firebaseArray(onlineUsersRef);
-    leader.onlineUsers = onlineUsers;
 
     leader.request = function (index) {
         opponentRef = firebase.database().ref("leaderboard/" + leader.onlineUsers[index].uid)
@@ -145,31 +187,33 @@ function leaderCtrl($firebaseAuth, $location, $firebaseArray, $firebaseObject, $
         ran = Math.round(Math.random() * 1000000);
         leader.challenger.gameId = ran;
         leader.player.gameId = ran;
-        leader.challenger.$save().then(function () {
-            leader.player.$save().then(function () {
-                gameRef = firebase.database().ref("game/" + ran)
-                leader.game = $firebaseObject(gameRef);
-                leader.game.player1 = leader.player.challenge;
-                leader.game.player2 = leader.user.uid;
-                buttons = [];
-                for (i = 0; i < 9; i++) {
-                    button = {};
-                    button.id = i;
-                    button.state = true;
-                    button.value = "";
-                    buttons.push(button);
-                }
-                leader.game.buttons = buttons;
-                leader.game.player = true;
-                leader.game.win = 0;
-                leader.game.tie = true;
-                // console.log(leader.challenger.uid,leader.player.uid)
-                leader.game.$save().then(function () {
+        leader.player.$save().then(function () {
+            gameRef = firebase.database().ref("game/" + ran)
+            leader.game = $firebaseObject(gameRef);
+            leader.game.player1 = leader.player.challenge;
+            leader.game.player2 = leader.user.uid;
+            buttons = [];
+            for (i = 0; i < 9; i++) {
+                button = {};
+                button.id = i;
+                button.state = true;
+                button.value = "";
+                buttons.push(button);
+            }
+            leader.game.buttons = buttons;
+            leader.game.player = true;
+            leader.game.win = 0;
+            leader.game.tie = true;
+            // console.log(leader.challenger.uid,leader.player.uid)
+            leader.game.$save().then(function () {
+                console.log(leader.challenger.accept)
+                leader.challenger.$save().then(function () {
                     $location.path("/game/" + ran);
                 });
+            });
 
-            })
-        })
+        });
+        
 
     }
 
@@ -178,65 +222,82 @@ function leaderCtrl($firebaseAuth, $location, $firebaseArray, $firebaseObject, $
 }
 
 
-function tic($routeParams, $firebaseObject, $firebaseAuth) {
+function tic($routeParams, $firebaseObject, $firebaseAuth,$location,$firebaseArray,$scope,$timeout) {
     var t = this;
     t.gameId = $routeParams.gameId
-    // t.game.buttons=[];
-    // for(i=0;i<9;i++){
-    //     button={};
-    //     button.id=i;
-    //     button.state=true;
-    //     button.value="";
-    //     t.game.buttons.push(button);
-    // }
-    // t.player=true;
-    // t.game.win=0;
-    // t.game.tie=true;
+    var onlineRef = firebase.database().ref("game/"+t.gameId+"/online");
+    var connectedRef = firebase.database().ref(".info/connected");
+    connectedRef.on("value", function (snap) {
+        if (snap.val() === true) {
+            console.log("connected");
+
+            var person = 0;
+            var con = onlineRef.push(person);
+
+            con.onDisconnect().remove();
+
+        } else {
+
+        }
+
+    });
+    onlineUsers = $firebaseArray(onlineRef);
+
+    $scope.$watch(function (scope) { return onlineUsers.length },
+        function (newValue, oldValue) {
+           $timeout(function(){
+               if(onlineUsers.length<2){
+                   alert("Uh OH!! Looks like your opponent is no longer available. Press ok to go back to the leaderboard page.")
+                   $location.path('/leaderboard');
+                //    $window.location.reload();
+               }
+           },4000)
+        }
+    );
+    gameRef = firebase.database().ref("game/" + t.gameId);
+    t.game = $firebaseObject(gameRef);
     var auth = $firebaseAuth();
     auth.$onAuthStateChanged(function (user) {
         if (user) {
             t.user = user;
-            gameRef = firebase.database().ref("game/" + t.gameId);
-            t.game = $firebaseObject(gameRef);
             t.game.$loaded().then(function () {
-                p1Ref = firebase.database().ref("leaderboard/" + t.game.player1);
+                p1Ref = firebase.database().ref("leaderboard/" + t.game.player1);             
                 p1 = $firebaseObject(p1Ref);
                 p1.$loaded().then(function () {
                     p1.accept = "";
                     p1.challenge = "";
-                    oppName1=p1.displayName;
-                    oppPhoto1=p1.photoURL;
-                    p1.$save();
-                })
-                p2Ref = firebase.database().ref("leaderboard/" + t.game.player2);
-                p2 = $firebaseObject(p2Ref);
-                p2.$loaded().then(function () {
-                    p2.accept = "";
-                    p2.challenge = "";
-                    oppName2=p2.displayName;
-                    oppPhoto2=p2.photoURL;
-                    p2.$save();
-                })
-                if (t.user.uid == t.game.player1) {
-                    t.player = true;
-                    t.symbol = "X";
-                }
-                else {
-                    t.player = false;
-                    t.symbol = "O";
-                }
-                if (t.player) {
-                    p2.$loaded().then(function () {
-                        t.opponent = p2;
-                        console.log(t.opponent,oppName2,oppPhoto2)
+                    p1.$save().then(function(){
+                        p2Ref = firebase.database().ref("leaderboard/" + t.game.player2);
+                        p2 = $firebaseObject(p2Ref);
+                        p2.$loaded().then(function () {
+                            p2.accept = "";
+                            p2.challenge = "";
+                            p2.$save().then(function(){
+                                if (t.user.uid == t.game.player1) {
+                                    t.player = true;
+                                    t.symbol = "X";
+                                }
+                                else {
+                                    t.player = false;
+                                    t.symbol = "O";
+                                }
+                                if (t.player) {
+                                    p2.$loaded().then(function () {
+                                        t.opponent = p2;
+                                        console.log(t.opponent)
+                                    })
+                                }
+                                else {
+                                    p1.$loaded().then(function () {
+                                        t.opponent = p1;
+                                        console.log(t.opponent)
+                                    })
+                                }
+                            })
+                        })
                     })
-                }
-                else {
-                    p1.$loaded().then(function () {
-                        t.opponent = p1;
-                        console.log(t.opponent,oppName1,oppPhoto1)
-                    })
-                }
+                })
+                
             })
         }
         else {
@@ -244,12 +305,12 @@ function tic($routeParams, $firebaseObject, $firebaseAuth) {
         }
     })
     t.changeState = function (id) {
-        if (t.game.buttons[id].state) {
-            if (t.player == t.game.player)
-                t.game.buttons[id].value = t.symbol;
+        if (t.game.buttons[id].state&&t.player == t.game.player) {
+            t.game.buttons[id].value = t.symbol;
             t.game.player = !t.game.player;
+            t.game.buttons[id].state = false;
         }
-        t.game.buttons[id].state = false;
+        
         t.game.$save().then(function () {
             checkIfComplete();
         })
@@ -304,7 +365,41 @@ function tic($routeParams, $firebaseObject, $firebaseAuth) {
         if (allSelected() && t.game.tie)
             t.game.win = 3;
         t.game.$save();
+        
     }
+    $scope.$watch(function (scope) { return t.game.win},
+        function (newValue, oldValue) {
+            if(newValue>0){
+                // console.log(p1,p2);
+               if(newValue==1){
+                   p1.score=p1.score+1;
+                   p1.$save().then(function(){
+                       alert("You will now be redirected to leaderboard");
+                       $location.path("/leaderboard");
+                    //    $window.location.reload();
+                   })
+               }
+               else
+    
+               if(newValue==2){
+                    p2.score=p2.score+1;
+                    p2.$save().then(function(){
+                        alert("You will now be redirected to leaderboard");
+                        $location.path("/leaderboard");
+                        // $window.location.reload();
+                    })
+                }
+                else{
+                    $timeout(function(){
+                        alert("You will now be redirected to leaderboard");
+                        $location.path("/leaderboard");
+                        // $window.location.reload();
+                    },2000)
+                }
+            }
+            
+        }
+    );
 
 
     function disableAll() {

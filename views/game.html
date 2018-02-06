@@ -58,18 +58,20 @@
                 </div>
 
             </div>
-            <br>
-            <button class="btn btn-primary reset" ng-click="t.reset()">Reset</button>
+            
+            <!-- <button class="btn btn-primary reset" ng-click="t.reset()">Reset</button> -->
             
         
-            <br><br>
-            <div style="text-align: center;" ng-if="t.win==0">
-                <h1 style="color: white" ng-if="t.player">Player 1's turn</h1>
-                <h1 style="color: white" ng-if="!t.player">Player 2's turn</h1>
+            <!-- <br><br> -->
+            <div style="text-align: center;" ng-if="t.game.win==0">
+                <h1 style="color: white" ng-if="t.player==t.game.player">Your Turn</h1>
+                <h1 style="color: white" ng-if="!t.player==t.game.player">{{t.opponent.displayName}}'s turn</h1>
             </div>
-            <div style="text-align: center;" ng-if="t.win>0">
-                <h1 style="color: white" ng-if="t.win==1">Player 1 wins!!</h1>
-                <h1 style="color: white" ng-if="t.win==2">Player 2 wins!!</h1>
-                <h1 style="color: white" ng-if="t.win==3">It's a tie!!</h1>
+            <div style="text-align: center;" ng-if="t.game.win>0">
+                <h1 style="color: white" ng-if="t.game.win==1&&t.player">You won!!</h1>
+                <h1 style="color: white" ng-if="t.game.win==1&&!t.player">{{t.opponent.displayName}} won!!</h1>
+                <h1 style="color: white" ng-if="t.game.win==2&&t.player">{{t.opponent.displayName}} won!!</h1>
+                <h1 style="color: white" ng-if="t.game.win==2&&!t.player">You won!!</h1>
+                <h1 style="color: white" ng-if="t.game.win==3">It's a tie!!</h1>
             </div>
         </div>
