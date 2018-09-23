@@ -1,16 +1,27 @@
 # Multiplayer Online TicTacToe
 A Tic tac toe game made with Angular JS and firebase as database.
-Play online with your friends, track your score and compete with them on the leadderboard.
+Play online with your friends, track your score and compete with them on the leaderboard.
 
 # Table of Contents
 * [Getting Started](#getting-started)
+* [How to Play?](#how-to)
 * [Live Project](#live-project)
 * [Features](#features)
 * [Built with](#built-with)
 * [Author](#author)
  
-
 # <a name="getting-started"></a>Getting Started
+First thing you need to do to use this project is to clone it using the following command -
+```
+git clone https://github.com/prateek3255/MultiplayerOnlineTicTacToe.git
+```
+Initially you would need to replace the firebase config in the index.html with your own firebase config settings so that it works on your firebase database, for more details on how to do that you can follow the process described [here](https://firebase.google.com/docs/web/setup).
+
+The project is divided into three sections namely Login, Leaderboard and Game. Each of these pages have their separate html files under the views folder.
+App.js also has three separate controllers for each of these components namely `LoginCtrl`, `LeaderCtrl` and `tic` respectively.
+
+
+# <a name="how-to"></a>How to Play?
 <ol>
 ` <li> Sign in using any of the provided services - Google or Facebook</li>
   <li> See the currently online users and challenge them using the button provided against their name.</li>
