@@ -1,9 +1,6 @@
 <html ng-app="tictactoe">
     <head>
-        <title>Tic Tac Toe</title>
-        <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css">
-         <link rel="stylesheet" href="bower_components/bootstrap-social/bootstrap-social.css">
-         <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.css">
+        <title>vbrc</title>
          <link rel="stylesheet" href="style.css">
          <link rel="stylesheet" href="animate.css">
          <link rel="icon" href="favicon.ico" type="image/x-icon" />
@@ -16,23 +13,18 @@
         <script src="app.js"></script>
         <script>
         // Initialize Firebase
-        var config = {
-            apiKey: "AIzaSyBx4vk3vAO6YpOg52bdpzlJL_J2k3LNQA0",
-            authDomain: "tic-tac-toe-3eed7.firebaseapp.com",
-            databaseURL: "https://tic-tac-toe-3eed7.firebaseio.com",
-            projectId: "tic-tac-toe-3eed7",
-            storageBucket: "tic-tac-toe-3eed7.appspot.com",
-            messagingSenderId: "65506646854"
+        const firebaseConfig = {
+
         };
-        firebase.initializeApp(config);
+        firebase.initializeApp(firebaseConfig);
         </script>
     </head>
-    <body style="background: black;">
+    <body >
         <ng-view>
-            
+
         </ng-view>
 
-        
+
 
     </body>
 </html>
